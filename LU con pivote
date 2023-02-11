@@ -1,0 +1,73 @@
+import numpy as np
+A = np.matrix([[1.0, 1.0, -1.0, 0.0], [1.0, 1.0, 0.0, -1.0],[-1.0, 0.0, 1.0, 1.0],[0.0, -1.0, 1.0, 1.0]])
+b = np.array([1.0, 1.0, 1.0, 1.0])
+x = np.zeros(len(A))
+
+def LU_solver(A, b):
+    # Factorizamos A en LU
+    L, U = Factor_LU(A)
+    # Sustitucióninferior
+    y = lower_solver(L, b)
+    # Sustituciónsuperior
+    x = upper_solver(U, y)
+    return x
+
+def Factor_LU(A):
+    
+    n = len(b)
+    # Matriz triangularizada y matriz con las operaciones
+    L=np.identity(n)
+    U=A
+    for k in range(0,n-1):
+        for i in range(k+1,n):
+            P = np.identity(n)
+            
+            for t in range(n): #filas
+                #Pivote parcial
+                
+                if abs(U[t,t]) < np.finfo('float').eps:
+                    mx = (t + 1) + np.argmax(abs(U[t+1:n,t])) # Índice del máximo valor
+                    if mx==U[t,t]:
+                        return('Sistema incompatible')
+                    else:
+                        # InterCambio de filas
+                        U[[t,mx], :] = U[[mx,t], :]
+                        P[[t,mx], :] = P[[mx,t], :]
+                        L[[t,mx], :t] = L[[mx,t], :t]
+            m= U[i,k]/U[k,k]
+            L[i][k]=m
+            print(L)
+            for j in range(0,n):
+                U[i,j] = U[i,j] - m*U[k,j] 
+    print(U)
+    return L,U
+
+def lower_solver(L, b):
+    
+    Lb = np.c_[L,b]
+    #Dimensión del sistema
+    n = len(b)
+    #Sustitución hacia abajo
+    for k in range(0,n):
+        s= 0.0
+        for i in range(0,n):
+            s= s + Lb[k,i]*x[i]
+            
+        x[k]= (Lb[k,n] -s)/ Lb[k,k]
+        
+    return x
+
+def upper_solver(U, y):
+    #Dimensión del sistema
+    n = len(b)
+    Uy = np.c_[U,y]
+    #Sustitución hacia arriba
+    for k in range(n-1,-1,-1):
+        s = 0.0
+        for i in range(k+1, n):
+            s = s + Uy[k,i]*x[i]
+        x[k] = (Uy[k,n] -s)/Uy[k,k]
+    return x
+
+x = LU_solver(A, b)
+print('\n El vector solución del sistema, x=', x)
