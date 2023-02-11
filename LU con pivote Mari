@@ -1,0 +1,79 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Sat Feb 11 21:28:14 2023
+
+@author: Mari
+"""
+
+import numpy as np
+
+A = np.matrix([[1, 1, -1, 0],
+               [1, 1, 0, -1],
+               [-1, 0, 1, 1],
+               [0, -1, 1, 1]])
+
+b = np.array([1, 1, 1, 1])
+
+
+def Factor_LU_pivotoncio(A):
+    n = len(b)
+    U = np.copy(A)
+    L = np.identity(n)
+    P = np.identity(n)
+    for k in range(n):
+        if abs(U[k, k]) < np.finfo('float').eps:
+            max = (k + 1) + np.argmax(abs(U[k + 1:n, k])) #candidatos a pivoncio(vector)
+                  #para q sea la posición abs, y pq no empezamos en cero
+            if max == k or abs(U[max, k]) < np.finfo('float').eps:
+                return 'Sistema incompatible'
+            else:
+                # Interambio de filas
+                U[[k, max], :] = U[[max, k], :]
+                P[[k, max], :] = P[[max, k], :]
+                L[[k, max], :k] = L[[max, k], :k]
+        for i in range(k + 1, n):
+            m = U[i, k] / U[k, k]
+            L[i, k] = m
+            U[i, :] = U[i, :] - m * U[k, :]
+    return P, L, U
+
+
+def lower_solver(L, b):  # Sustitución 1
+    # Dimensión del sistema
+    n = len(b)
+    y = np.zeros(n)
+    # Sustitución hacia abajo
+    for k in range(n):
+        s = 0.0
+        for i in range(k):
+            s = s + L[k, i] * y[i]
+        y[k] = (b[k] - s) / L[k, k]
+    return y
+
+
+def upper_solver(U, x):
+    # Dimensión del sistema
+    n = len(x)
+    # Sustitución hacia arriba
+    for k in range(n - 1, -1, -1):
+        s = 0.0
+        for i in range(k + 1, n):
+            s = s + U[k, i] * x[i]
+        x[k] = (x[k] - s) / U[k, k]
+    return x
+
+
+def LU_solver(A, b):
+    # Factorizamos A en LU
+    P, L, U = Factor_LU_pivotoncio(A)
+    # Sustitución inferior
+    Pb = np.dot(P, b)
+    y = lower_solver(L, Pb)
+    # Sustitución superior
+    x = upper_solver(U, y)
+    return x
+
+
+
+
+print(LU_solver(A, b))
