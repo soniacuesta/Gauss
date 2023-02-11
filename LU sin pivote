@@ -1,0 +1,64 @@
+"""
+Created on Sat Feb 11 13:28:08 2023
+
+@author: Adrian
+"""
+import numpy as np
+A = np.matrix([[2.0, 3.0, 4.0, 5.0], [6.0, 15.0,19.0, 23.0],[8.0, 42.0, 60.0, 70.0],[12.0, 60.0, 1.0, 17.0]])
+b = np.array([5.0, 30.0, 98.0, 144.0])
+x = np.zeros(len(A))
+
+def LU_solver(A, b):
+    # Factorizamos A en LU
+    L, U = Factor_LU(A)
+    # Sustitucióninferior
+    y = lower_solver(L, b)
+    # Sustituciónsuperior
+    x = upper_solver(U, y)
+    return x
+
+def Factor_LU(A):
+    
+    n = len(b)
+    # Matriz triangularizada y matriz con las operaciones
+    L=np.identity(n)
+    
+    for k in range(0,n-1):
+        for i in range(k+1,n):
+            m= A[i,k]/A[k,k]
+            L[i][k]=m
+            for j in range(0,n):
+                A[i,j] = A[i,j] - m*A[k,j]  
+    U=A
+    
+    return L,U
+
+def lower_solver(L, b):
+    
+    Lb = np.c_[L,b]
+    #Dimensión del sistema
+    n = len(b)
+    #Sustitución hacia abajo
+    for k in range(0,n):
+        s= 0.0
+        for i in range(0,n):
+            s= s + Lb[k,i]*x[i]
+            
+        x[k]= (Lb[k,n] -s)/ Lb[k,k]
+        
+    return x
+
+def upper_solver(U, y):
+    #Dimensión del sistema
+    n = len(b)
+    Uy = np.c_[U,y]
+    #Sustitución hacia arriba
+    for k in range(n-1,-1,-1):
+        s = 0.0
+        for i in range(k+1, n):
+            s = s + Uy[k,i]*x[i]
+        x[k] = (Uy[k,n] -s)/Uy[k,k]
+    return x
+
+x = LU_solver(A, b)
+print('\n El vector solución del sistema, x=', x)
